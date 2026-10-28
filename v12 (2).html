@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>광주 근교 반나절 나들이 v12 (통합완성판)</title>
+<style>
+  :root {
+    --bg: #edf4ef; --card: #ffffff; --ink: #1e293b; --sub: #64748b;
+    --accent: #10b981; --accent-dark: #059669; --line: #e2e8f0; --chip: #f1f5f9;
+    --ok: #10b981; --warn: #f59e0b; --food: #f43f5e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif; background: var(--bg); color: var(--ink); }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+  
+  header.top { background: linear-gradient(135deg, #059669, #047857); color: #fff; padding: 18px 16px 14px; position: sticky; top: 0; z-index: 20; }
+  header.top h1 { margin: 0 0 4px; font-size: 19px; font-weight: 800; letter-spacing: -0.5px;}
+  header.top p { margin: 0; font-size: 12px; opacity: .9; font-weight: 400;}
+  
+  .stats { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .stat { background: rgba(255,255,255,.2); border-radius: 8px; padding: 6px 10px; font-size: 11px; backdrop-filter: blur(4px);}
+  .stat b { font-size: 13.5px; display: block; font-weight: 700;}
+  
+  .tabs { display: flex; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 82px; z-index: 19; }
+  .tab { flex: 1; text-align: center; padding: 12px 2px; font-size: 13px; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; word-break: keep-all; font-weight: 500;}
+  .tab.active { color: var(--accent); font-weight: 800; border-bottom-color: var(--accent); }
+  
+  .content { flex: 1; padding: 14px; padding-bottom: 90px; }
+  
+  .filters-group { margin-bottom: 12px; }
+  .filters-label { font-size: 11.5px; font-weight: 700; color: var(--sub); margin: 6px 0 4px 4px; display: flex; align-items: center; gap: 4px; }
+  .filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; color: var(--sub); cursor: pointer; white-space: nowrap; transition: all 0.2s; font-weight: 500;}
+  .chip.active { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 700; }
+  .chip.food.active { background: var(--food); border-color: var(--food); }
+  .chip.weather.active { background: #0284c7; border-color: #0284c7; }
+  
+  .searchbox { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 12px; font-size: 14px; background: #fff; outline: none; transition: border 0.2s;}
+  .searchbox:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,185,129,0.1);}
+  
+  .card { background: var(--card); border-radius: 16px; padding: 0; margin-bottom: 14px; box-shadow: 0 4px 10px rgba(0,0,0,.03); border: 1px solid var(--line); position: relative; cursor: pointer; overflow: hidden; transition: transform 0.15s; }
+  .card:active { transform: scale(0.98); }
+  .card-body { padding: 16px; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; padding-right: 30px; font-weight: 800; color: var(--ink);}
+  .card .route { font-size: 12.5px; color: var(--sub); margin-bottom: 10px; line-height: 1.45; }
+  
+  .badge { display: inline-block; font-size: 10.5px; padding: 3px 8px; border-radius: 6px; background: var(--chip); color: var(--sub); margin-right: 4px; margin-bottom: 6px; font-weight: 700; letter-spacing: -0.2px;}
+  .badge.sigun { background: #e0f2fe; color: #0369a1; }
+  .badge.type { background: #ffedd5; color: #c2410c; }
+  .badge.ok { background: #dcfce7; color: #15803d; }
+  .badge.warn { background: #fef9c3; color: #a16207; }
+  .badge.food { background: #ffe4e6; color: #be123c; }
+  .badge.weather { background: #e0f2fe; color: #0284c7; }
+  .badge.companion { background: #f3e8ff; color: #6b21a8; }
+  .badge.day { background: #f1f5f9; color: #334155; }
+  
+  .meta-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #94a3b8; margin-top: 8px; font-weight: 500;}
+  .meta-row span { display: flex; align-items: center; gap: 4px; }
+  
+  .heart { position: absolute; top: 12px; right: 12px; font-size: 18px; cursor: pointer; color: #cbd5e1; z-index: 10; background: rgba(255,255,255,0.95); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: transform 0.2s, color 0.2s; }
+  .heart:active { transform: scale(1.2); }
+  .heart.on { color: #ef4444; }
+  
+  .action-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .mini-btn { flex: 1; min-width: 84px; text-align: center; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px; font-size: 12px; font-weight: 700; color: var(--ink); text-decoration: none; cursor: pointer; display: inline-block;}
+  .mini-btn.kakao { background: #fee500; color: #3f3f46; border-color: #fde047; }
+  .mini-btn.naver { background: #03cf5d; color: #fff; border-color: #22c55e; }
+  .mini-btn.share { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+  
+  .empty { text-align: center; color: var(--sub); padding: 50px 10px; font-size: 14px; line-height: 1.6; font-weight: 500;}
+  
+  .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.6); z-index: 50; display: none; backdrop-filter: blur(3px); }
+  .overlay.show { display: block; animation: fadeIn 0.2s; }
+  .sheet { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%) translateY(100%); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 24px 24px 0 0; z-index: 51; padding: 0 0 30px 0; display: block; transition: transform 0.35s cubic-bezier(0.1, 0.8, 0.2, 1); }
+  .sheet.show { transform: translateX(-50%) translateY(0); }
+  .sheet-content { padding: 20px 20px; }
+  .sheet h2 { margin: 0 0 8px; font-size: 20px; padding-right: 30px; line-height: 1.3; font-weight: 800; color: var(--ink);}
+  .sheet-close { position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.3); font-size: 18px; color: #fff; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px);}
+  
+  .sec { margin-top: 24px; }
+  .sec h4 { margin: 0 0 12px; font-size: 14.5px; color: var(--accent-dark); font-weight: 800; display: flex; align-items: center; gap: 6px;}
+  .sec h4::before { content: ''; display: inline-block; width: 4px; height: 14px; background: var(--accent); border-radius: 2px;}
+  
+  .place-mini { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 10px; background: #f8fafc; }
+  .place-mini .pname { font-weight: 800; font-size: 14.5px; margin-bottom: 6px; color: var(--ink);}
+  
+  .kv { display: grid; grid-template-columns: 75px 1fr; gap: 8px 10px; font-size: 12.5px; color: var(--sub); margin-top: 10px; }
+  .kv b { color: var(--ink); font-weight: 600; word-break: keep-all; line-height: 1.5; }
+  
+  .foodcard { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 10px; background: #fff1f2; }
+  
+  .acc { border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; overflow: hidden; background: #fff; }
+  .acc summary { padding: 14px; font-size: 13px; color: var(--ink); cursor: pointer; list-style: none; font-weight: 700; background: #f8fafc;}
+  .acc summary::-webkit-details-marker { display: none; }
+  .acc .acc-body { padding: 12px 14px; font-size: 12px; color: var(--sub); line-height: 1.6; }
+  
+  .notice { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 12.5px; padding: 12px; border-radius: 12px; margin-bottom: 14px; line-height: 1.5; font-weight: 500;}
+  
+  .toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(20px); background: rgba(15,23,42,0.95); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 13.5px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.1, 0.8, 0.2, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  a { color: inherit; text-decoration: none;}
+
+  .curation-box { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 1px solid #a7f3d0; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(16,185,129,0.1); }
+  .curation-box h3 { margin: 0 0 10px; font-size: 17px; color: #047857; display: flex; align-items: center; gap: 6px; font-weight: 800;}
+  .curation-box p { margin: 0 0 16px; font-size: 13px; color: #334155; line-height: 1.5; word-break: keep-all; }
+  .curation-sel-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .curation-sel { flex: 1; min-width: 110px; padding: 12px 14px; border-radius: 12px; border: 1px solid #6ee7b7; font-size: 13.5px; background: #fff; outline: none; color: var(--ink); font-weight: 600; }
+  .btn-curate { width: 100%; background: var(--accent-dark); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .2s; box-shadow: 0 4px 12px rgba(5,150,105,0.3);}
+  .btn-curate:active { background: #047857; }
+  
+  .curate-result { background: #fff; border: 2px solid #6ee7b7; border-radius: 16px; padding: 20px; margin-top: 16px; display: none; }
+  .curate-result.show { display: block; animation: fadeIn .4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .nav-btn-group { display: flex; gap: 8px; margin-top: 14px; }
+  .nav-btn { flex: 1; text-align: center; padding: 12px 8px; border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .nav-btn.kakao { background: #fee500; color: #191919; border: 1px solid #fde047; }
+  .nav-btn.naver { background: #03cf5d; color: #fff; border: 1px solid #22c55e; }
+
+  /* SVG 비주얼 & 애니메이션 */
+  .svg-visual { width: 100%; height: 140px; overflow: hidden; position: relative; display: block; background: #ccc;}
+  .svg-visual svg { width: 100%; height: 100%; display: block; object-fit: cover; }
+  
+  @keyframes sway { 0%, 100% { transform: rotate(0deg); transform-origin: bottom center; } 50% { transform: rotate(2deg); transform-origin: bottom center; } }
+  @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  @keyframes cloudMove { 0% { transform: translateX(0); } 100% { transform: translateX(100px); } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>🌿 광주 근교 반나절 나들이 v12</h1>
+    <p>명소 28곳, 추천코스 12개, 현지인 맛집 14선</p>
+    <div class="stats" id="statsRow"></div>
+  </header>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="course">추천 코스</div>
+    <div class="tab" data-tab="place">명소 찾기</div>
+    <div class="tab" data-tab="food">주변 맛집</div>
+    <div class="tab" data-tab="curation">AI 큐레이터</div>
+    <div class="tab" data-tab="like">찜목록</div>
+  </div>
+  
+  <div class="content" id="content"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* 28개 명소 데이터 (companion, days, weather 프로퍼티 추가 완벽 보완) */
+const DATA = {
+  "places": [
+    {"id": "D01", "sigun": "담양", "name": "죽녹원", "type": "자연", "indoor": "실외", "address": "담양군 담양읍 죽녹원로 119", "hours": "09:00~19:00(동절기 18:00)", "closed": "연중무휴", "feeAdult": "3,000원", "feeOther": "청소년 1,500원", "parking": "가능", "stay": "약 1.5시간", "baby": "무장애길 일부", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "대나무 숲 산책로가 조성된 담양 대표 관광지", "note": "11월부터 동절기 시간 적용", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "D02", "sigun": "담양", "name": "메타세쿼이아길", "type": "자연", "indoor": "실외", "address": "담양군 담양읍 메타세쿼이아로 12", "hours": "09:00~18:00", "closed": "연중무휴", "feeAdult": "2,000원", "feeOther": "어린이 700원", "parking": "가능", "stay": "약 1시간", "baby": "유모차 가능", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "메타세쿼이아 가로수가 이어지는 낭만적인 길", "note": "", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "D03", "sigun": "담양", "name": "관방제림", "type": "자연", "indoor": "실외", "address": "담양군 담양읍 남사리 일원", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "가능", "stay": "약 1시간", "baby": "산책로 평탄함", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "담양천 제방을 보호하려고 조성한 푸른 숲길", "note": "죽녹원·메타세쿼이아길과 인접", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "D04", "sigun": "담양", "name": "소쇄원", "type": "문화·역사", "indoor": "실외", "address": "담양군 가사문학면 소쇄원길 17", "hours": "09:00~18:00(여름 19:00)", "closed": "연중무휴", "feeAdult": "2,000원", "feeOther": "어린이 700원", "parking": "가능", "stay": "약 1시간", "baby": "일부 구간 불편", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "명승으로 지정된 조선시대 최고 민간 원림", "note": "", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "D05", "sigun": "담양", "name": "한국대나무박물관", "type": "체험·전시", "indoor": "실내", "address": "담양군 담양읍 죽향문화로 35", "hours": "09:00~18:00", "closed": "연중무휴", "feeAdult": "2,000원", "feeOther": "어린이 700원", "parking": "가능", "stay": "약 1시간", "baby": "수유실 확인 필요", "rainOk": "○", "couple": "△", "kids": "○", "parents": "○", "desc": "대나무·죽세공예 문화를 소개하는 박물관", "note": "최근 복합문화공간 전환 중", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "일부 확인 필요", "driveMin": 25, "companion": ["아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    {"id": "D06", "sigun": "담양", "name": "담빛예술창고", "type": "체험·전시", "indoor": "실내", "address": "담양군 담양읍 객사7길 75", "hours": "10:00~18:00", "closed": "매주 월요일", "feeAdult": "무료", "feeOther": "기획전시 유료", "parking": "가능", "stay": "약 1시간", "baby": "유모차 가능", "rainOk": "○", "couple": "○", "kids": "△", "parents": "△", "desc": "옛 양곡창고를 고쳐 만든 복합문화 갤러리/카페", "note": "관방제림 산책 후 들르기 좋음", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "혼자"], "days": ["화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    {"id": "D07", "sigun": "담양", "name": "창평 슬로시티", "type": "마을·거리", "indoor": "실외", "address": "담양군 창평면 돌담길 9-22", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "마을 공용주차장", "stay": "약 1시간", "baby": "골목길", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "고택과 옛 돌담길이 남아있는 전통 한옥마을", "note": "거주민 보호를 위해 조용한 관람 필요", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    
+    {"id": "H02", "sigun": "화순", "name": "물염적벽(적벽 대안)", "type": "자연", "indoor": "실외", "address": "화순군 이서면 장항리", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "가능", "stay": "약 30분", "baby": "관람 데크", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "예약 없이 상시 볼 수 있는 웅장한 화순 적벽 구간", "note": "가장 접근성이 좋은 적벽", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "H03", "sigun": "화순", "name": "운주사", "type": "문화·역사", "indoor": "실외", "address": "화순군 도암면 천태로 91-44", "hours": "하계 07:00~19:00", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "가능", "stay": "약 1.5시간", "baby": "사찰 내 산책 가능", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "천불천탑의 신비로운 전설을 간직한 사찰", "note": "최근 입장료 폐지", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "H04", "sigun": "화순", "name": "화순 고인돌유적지", "type": "문화·역사", "indoor": "혼합", "address": "화순군 도곡면 효산리 64 일대", "hours": "10:00~17:00", "closed": "연중무휴", "feeAdult": "무료(축제제외)", "feeOther": "", "parking": "가능", "stay": "약 1시간", "baby": "야외 산책로 양호", "rainOk": "△", "couple": "○", "kids": "○", "parents": "○", "desc": "세계유산으로 지정된 거대한 고인돌 군락지", "note": "봄/가을 축제기간 볼거리 풍성", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "아이", "부모님"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    {"id": "H05", "sigun": "화순", "name": "세량지", "type": "자연", "indoor": "실외", "address": "화순군 화순읍 세량리 98", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "가능", "stay": "약 1시간", "baby": "수변 데크길 양호", "rainOk": "×", "couple": "○", "kids": "△", "parents": "△", "desc": "물에 비친 산벚꽃과 물안개 풍경이 아름다운 저수지", "note": "사진작가들의 새벽 출사지로 유명", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "H06", "sigun": "화순", "name": "만연사", "type": "문화·역사", "indoor": "실외", "address": "화순군 화순읍 진각로 367", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "가능", "stay": "약 40분", "baby": "사찰 내 산책", "rainOk": "×", "couple": "△", "kids": "△", "parents": "○", "desc": "겨울철 연등과 눈꽃 절경으로 유명한 고즈넉한 산사", "note": "봄철 벚꽃도 아름다움", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "H07", "sigun": "화순", "name": "화순 남산공원", "type": "자연", "indoor": "실외", "address": "화순군 화순읍 진각로 93", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "주변 공영", "stay": "약 40분", "baby": "공원 산책로 양호", "rainOk": "×", "couple": "△", "kids": "○", "parents": "○", "desc": "화순읍 중심의 공원으로 계절별 국화 등 꽃 정원 조성", "note": "가을철 국화향연 개최지", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "H08", "sigun": "화순", "name": "화순아쿠아나(워터파크)", "type": "체험·전시", "indoor": "실내", "address": "화순군 북면 옥리길 14-21", "hours": "시즌별 상이", "closed": "홈페이지 확인", "feeAdult": "약 35,000원", "feeOther": "할인 다수", "parking": "리조트 주차", "stay": "반나절", "baby": "수유실/유아풀", "rainOk": "○", "couple": "○", "kids": "○", "parents": "△", "desc": "온천수를 이용한 실내외 워터파크 및 스파 시설", "note": "방문 전 공식 홈페이지 운영시간 확인 필수", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "일부 확인 필요", "driveMin": 22, "companion": ["연인·친구", "아이"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    
+    {"id": "N01", "sigun": "나주", "name": "국립나주박물관", "type": "체험·전시", "indoor": "실내", "address": "나주시 반남면 고분로 747", "hours": "09:00~18:00", "closed": "매주 월요일", "feeAdult": "무료(상설전)", "feeOther": "", "parking": "가능", "stay": "약 1.5시간", "baby": "어린이박물관", "rainOk": "○", "couple": "△", "kids": "○", "parents": "○", "desc": "영산강 유역 고고자료와 독무덤을 전시하는 국립박물관", "note": "어린이박물관 예약 권장", "sourceUrl": "https://naju.museum.go.kr", "status": "확인", "driveMin": 40, "companion": ["아이", "부모님", "혼자"], "days": ["화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    {"id": "N02", "sigun": "나주", "name": "나주읍성·금성관", "type": "문화·역사", "indoor": "실외", "address": "나주시 금성관길 8", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "주변 공영", "stay": "약 40분", "baby": "평지", "rainOk": "×", "couple": "△", "kids": "△", "parents": "○", "desc": "조선시대 나주목의 웅장함을 보여주는 객사", "note": "곰탕거리 식사 후 산책으로 좋음", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "N03", "sigun": "나주", "name": "나주 목사내아", "type": "문화·역사", "indoor": "실외", "address": "나주시 금성관길 13-8", "hours": "09:00~18:00", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "주변 공영", "stay": "약 30분", "baby": "마당 산책", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "조선시대 나주목사가 머물던 살림집", "note": "금성관 바로 인근", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "부모님"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "N04", "sigun": "나주", "name": "나주곰탕거리", "type": "마을·거리", "indoor": "실내", "address": "나주시 금성관길 일대", "hours": "업소별 상이", "closed": "업소별 휴무", "feeAdult": "식비별도", "feeOther": "", "parking": "공영주차장", "stay": "약 1시간", "baby": "식당별 상이", "rainOk": "○", "couple": "○", "kids": "○", "parents": "○", "desc": "오랜 전통의 맑은 고기 국물, 나주곰탕 전문점 밀집 지역", "note": "점심시간 대기줄 감안", "sourceUrl": "", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    {"id": "N05", "sigun": "나주", "name": "영산포 등대·홍어거리", "type": "마을·거리", "indoor": "실외", "address": "나주시 영산동 일대", "hours": "상시 개방", "closed": "식당별 휴무", "feeAdult": "무료", "feeOther": "", "parking": "강변 주차장", "stay": "약 1시간", "baby": "강변 산책로", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "내륙 하천 등대와 특유의 홍어 냄새가 풍기는 미식 거리", "note": "홍어 냄새 호불호 유의", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "부모님"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "N06", "sigun": "나주", "name": "빛가람 호수공원", "type": "자연", "indoor": "실외", "address": "나주시 호수로 77", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료(전망대별도)", "feeOther": "", "parking": "가능", "stay": "약 1.5시간", "baby": "놀이터/산책로", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "혁신도시 중심의 광활한 호수와 모노레일이 있는 공원", "note": "야간 분수 및 조명 아름다움", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "N07", "sigun": "나주", "name": "전남 산림자원연구소", "type": "자연", "indoor": "실외", "address": "나주시 산포면 다도로 7", "hours": "09:00~17:00", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "체험별도", "parking": "가능", "stay": "약 1시간", "baby": "유모차 가능", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "아름다운 메타세쿼이아 숲길이 있는 힐링 산림연구소", "note": "드라마 촬영지로 유명", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "N08", "sigun": "나주", "name": "영산강 황포돛배", "type": "체험·전시", "indoor": "실외", "address": "나주시 등대길 80", "hours": "10:00~17:00", "closed": "매주 월요일", "feeAdult": "8,000원", "feeOther": "6세 미만 무료", "parking": "선착장 주차", "stay": "탑승 약 50분", "baby": "배 탑승 유의", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "옛 방식으로 복원된 돛배를 타고 영산강의 정취를 유람", "note": "기상 악화시 결항", "sourceUrl": "https://naju.go.kr", "status": "확인", "driveMin": 25, "companion": ["연인·친구", "아이", "부모님"], "days": ["화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    
+    {"id": "J01", "sigun": "장성", "name": "백양사", "type": "문화·역사", "indoor": "실외", "address": "장성군 북하면 백양로 1239", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "주차비 유료", "parking": "가능", "stay": "약 2시간", "baby": "진입로 평탄", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "쌍계루와 애기단풍 절경이 전국적으로 유명한 천년고찰", "note": "가을 단풍철 주차 혼잡 극심", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 37, "companion": ["연인·친구", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "J02", "sigun": "장성", "name": "장성호 수변길 (출렁다리)", "type": "자연", "indoor": "실외", "address": "장성군 장성읍 신흥로 138", "hours": "09:00~18:00", "closed": "연중무휴", "feeAdult": "주말 3,000원", "feeOther": "평일무료, 상품권환급", "parking": "완비", "stay": "약 1.5시간", "baby": "데크길, 계단 유의", "rainOk": "×", "couple": "○", "kids": "△", "parents": "○", "desc": "호수 위를 걷는 짜릿한 옐로우 출렁다리와 쾌적한 데크길", "note": "주말 요금은 지역상품권으로 환급", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "부모님"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "J03", "sigun": "장성", "name": "국립장성치유의숲", "type": "자연", "indoor": "실외", "address": "장성군 서삼면 추암로 716", "hours": "10:00~17:00", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "프로그램 별도", "parking": "가능", "stay": "약 2시간", "baby": "무장애 데크길", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "피톤치드 가득한 축령산 편백나무 숲에서 치유의 시간", "note": "", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "J04", "sigun": "장성", "name": "황룡강 생태공원", "type": "자연", "indoor": "실외", "address": "장성군 장성읍 기산리 57-14", "hours": "상시 개방", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "둔치 주차장", "stay": "약 1시간", "baby": "평탄한 꽃길", "rainOk": "×", "couple": "○", "kids": "○", "parents": "○", "desc": "사계절 내내 다채로운 꽃들이 만발하는 수려한 강변 공원", "note": "봄/가을 꽃축제 명소", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["연인·친구", "아이", "부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}, 
+    {"id": "J05", "sigun": "장성", "name": "홍길동 테마파크", "type": "체험·전시", "indoor": "혼합", "address": "장성군 황룡면 홍길동로 431", "hours": "09:00~17:00", "closed": "명절 휴무", "feeAdult": "시설별 상이", "feeOther": "", "parking": "가능", "stay": "약 1.5시간", "baby": "유모차 가능", "rainOk": "○", "couple": "△", "kids": "○", "parents": "△", "desc": "실존 인물 홍길동 생가와 4D영상관, 놀이시설이 있는 곳", "note": "", "sourceUrl": "https://jangseong.go.kr", "status": "확인", "driveMin": 22, "companion": ["아이"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음", "☔ 비·흐림"]}, 
+    {"id": "J06", "sigun": "장성", "name": "필암서원", "type": "문화·역사", "indoor": "실외", "address": "장성군 황룡면 필암서원로 184", "hours": "09:00~18:00", "closed": "연중무휴", "feeAdult": "무료", "feeOther": "", "parking": "가능", "stay": "약 40분", "baby": "유모차 제한", "rainOk": "×", "couple": "△", "kids": "△", "parents": "○", "desc": "유네스코 세계유산에 등재된 조선시대 대표 성리학 서원", "note": "", "sourceUrl": "https://korean.visitkorea.or.kr", "status": "확인", "driveMin": 22, "companion": ["부모님", "혼자"], "days": ["월요일", "화~금", "주말"], "weather": ["☀️ 맑음"]}
+  ], 
+  "courses": [
+    {"id": "C01", "name": "담양 대숲 힐링 반나절", "sigun": "담양", "companion": "연인·친구", "placeIds": ["D01", "D03", "D02"], "totalHours": 3.5, "rainAltId": "D05", "rainAltName": "한국대나무박물관", "cost": 5000, "season": "사계절 무난", "memo": "죽녹원 산책 후 관방제림 그늘을 따라 걷고 메타세쿼이아길에서 낭만 사진 완성!", "stayMin": 140, "moveMin": 30, "route": "죽녹원 → 관방제림 → 메타세쿼이아길"}, 
+    {"id": "C02", "name": "담양 고즈넉 정원 투어", "sigun": "담양", "companion": "부모님 동반", "placeIds": ["D04", "D05"], "totalHours": 3.0, "rainAltId": "D06", "rainAltName": "담빛예술창고", "cost": 4000, "season": "연중", "memo": "고즈넉한 소쇄원의 정취를 느끼고 대나무 박물관을 둘러보는 차분한 코스입니다.", "stayMin": 120, "moveMin": 15, "route": "소쇄원 → 한국대나무박물관"}, 
+    {"id": "C03", "name": "담양 아이와 생태 탐험", "sigun": "담양", "companion": "아이 동반", "placeIds": ["D01", "D05"], "totalHours": 3.0, "rainAltId": "D06", "rainAltName": "담빛예술창고", "cost": 5000, "season": "연중", "memo": "아이들이 뛰어놀기 좋은 대나무숲과 실내 전시 체험을 묶은 가족 나들이 코스.", "stayMin": 120, "moveMin": 15, "route": "죽녹원 → 한국대나무박물관"}, 
+    {"id": "C04", "name": "화순 고인돌 유적 탐방", "sigun": "화순", "companion": "아이 동반", "placeIds": ["H04", "H07"], "totalHours": 3.2, "rainAltId": "H08", "rainAltName": "금호아쿠아나", "cost": 0, "season": "가을 축제기간 추천", "memo": "거대한 선사시대 고인돌 유적지에서 역사 공부도 하고 남산공원 꽃 구경도 하세요.", "stayMin": 130, "moveMin": 15, "route": "화순 고인돌유적지 → 화순 남산공원"}, 
+    {"id": "C05", "name": "화순 천불천탑 사찰 산책", "sigun": "화순", "companion": "부모님 동반", "placeIds": ["H03", "H06"], "totalHours": 2.8, "rainAltId": "H04", "rainAltName": "고인돌유적지", "cost": 0, "season": "연중", "memo": "부모님과 함께 조용히 불교 문화와 사찰의 아름다움을 감상하는 힐링 시간입니다.", "stayMin": 110, "moveMin": 15, "route": "운주사 → 만연사"}, 
+    {"id": "C06", "name": "화순 적벽과 낭만 드라이브", "sigun": "화순", "companion": "연인·친구", "placeIds": ["H02", "H05"], "totalHours": 3.0, "rainAltId": "H08", "rainAltName": "금호아쿠아나", "cost": 0, "season": "봄, 가을 적극추천", "memo": "웅장한 적벽 감상 후 세량지의 물안개 피는 풍경을 담아보는 드라이브 출사 코스.", "stayMin": 120, "moveMin": 30, "route": "물염적벽 → 세량지"}, 
+    {"id": "C07", "name": "나주 원도심 곰탕과 목사내아", "sigun": "나주", "companion": "부모님 동반", "placeIds": ["N02", "N03", "N04"], "totalHours": 2.5, "rainAltId": "N01", "rainAltName": "국립나주박물관", "cost": 0, "season": "연중", "memo": "조선 가옥의 멋을 한껏 느끼고 나주의 명물 곰탕으로 든든히 배를 채워보세요.", "stayMin": 100, "moveMin": 10, "route": "금성관 → 목사내아 → 나주곰탕거리"}, 
+    {"id": "C08", "name": "영산강 황포돛배 레트로", "sigun": "나주", "companion": "연인·친구", "placeIds": ["N08", "N05"], "totalHours": 2.9, "rainAltId": "N01", "rainAltName": "국립나주박물관", "cost": 8000, "season": "봄~가을 추천", "memo": "영산강 바람을 가르며 배를 타고 근대 문화 유산 거리를 거니는 이색 데이트 코스.", "stayMin": 110, "moveMin": 15, "route": "황포돛배 탑승장 → 영산포 홍어거리(등대)"}, 
+    {"id": "C09", "name": "나주 박물관과 호수 야경", "sigun": "나주", "companion": "아이 동반", "placeIds": ["N01", "N06"], "totalHours": 3.8, "rainAltId": "N01", "rainAltName": "국립나주박물관", "cost": 0, "season": "연중", "memo": "국립나주박물관에서 독무덤을 구경하고 빛가람 호수공원에서 분수와 야경을 즐기세요.", "stayMin": 130, "moveMin": 25, "route": "국립나주박물관 → 빛가람 호수공원"}, 
+    {"id": "C10", "name": "장성호 출렁다리와 꽃강길", "sigun": "장성", "companion": "연인·친구", "placeIds": ["J02", "J04"], "totalHours": 3.2, "rainAltId": "J05", "rainAltName": "홍길동 테마파크", "cost": 3000, "season": "연중무휴", "memo": "호수 위 스릴 만점 출렁다리를 건너고 황룡강 꽃길을 걸으며 추억을 남기세요.", "stayMin": 130, "moveMin": 15, "route": "장성호 수변길 → 황룡강 생태공원"}, 
+    {"id": "C11", "name": "홍길동 테마파크 액티비티", "sigun": "장성", "companion": "아이 동반", "placeIds": ["J05", "J04"], "totalHours": 3.2, "rainAltId": "J05", "rainAltName": "홍길동테마파크 실내", "cost": 0, "season": "연중", "memo": "아이들이 좋아하는 홍길동 마을에서 뛰놀고 넓은 생태공원 피크닉을 즐겨보세요.", "stayMin": 130, "moveMin": 15, "route": "홍길동 테마파크 → 황룡강 생태공원"}, 
+    {"id": "C12", "name": "백양사와 장성호 호반 산책", "sigun": "장성", "companion": "부모님 동반", "placeIds": ["J01", "J02"], "totalHours": 3.7, "rainAltId": "J05", "rainAltName": "홍길동 테마파크", "cost": 3000, "season": "가을 단풍철 최적", "memo": "쌍계루의 절경을 감상하고 호반을 따라 천천히 걸으며 자연을 담는 효도 코스.", "stayMin": 130, "moveMin": 25, "route": "백양사 → 장성호 수변길"}
+  ], 
+  "travel": {
+    "담양": {"point": "담양군청", "min": 25}, 
+    "화순": {"point": "화순군청", "min": 22}, 
+    "나주": {"point": "나주시청", "min": 25}, 
+    "장성": {"point": "장성군청", "min": 22}
+  }, 
+  "restaurants": [
+    {"id": "R01", "sigun": "담양", "name": "담양막둥이국수", "menu": "떡갈비 죽순 비빔국수", "address": "전남 담양군 담양읍 객사4길 46", "hours": "10:00~20:00", "closed": "화요일", "phone": "0507-1374-6451", "note": "국수거리 입구, 떡갈비 콜라보"}, 
+    {"id": "R02", "sigun": "담양", "name": "진우네집국수", "menu": "비빔국수, 멸치국수", "address": "전남 담양군 담양읍 객사3길 32", "hours": "09:00~20:00", "closed": "연중무휴", "phone": "061-381-5344", "note": "담양 국수거리 터줏대감 야외평상"}, 
+    {"id": "R03", "sigun": "담양", "name": "덕인관", "menu": "전통 창평 떡갈비", "address": "전남 담양군 담양읍 죽향대로 1121", "hours": "11:00~20:00", "closed": "명절 휴무", "phone": "061-381-2194", "note": "격식있는 프리미엄 한우 떡갈비 명가"}, 
+    {"id": "R04", "sigun": "담양", "name": "쌍교숯불갈비", "menu": "돼지갈비, 매운갈비", "address": "전남 담양군 봉산면 송대길 2", "hours": "11:00~21:00", "closed": "연중무휴", "phone": "061-382-0012", "note": "대형 주차장, 현지인 외식 추천 장소"}, 
+    {"id": "R05", "sigun": "화순", "name": "임광복의뜨락", "menu": "간장게장 정식", "address": "전남 화순군 화순읍 진각로 366-4", "hours": "11:30~21:00", "closed": "월요일", "phone": "0507-1393-8015", "note": "푸짐한 한상차림, 어르신 선호"}, 
+    {"id": "R06", "sigun": "화순", "name": "명동칡냉면&돈까스", "menu": "칡냉면, 수제돈까스", "address": "전남 화순군 화순읍 충의로 158", "hours": "11:00~19:30", "closed": "문의", "phone": "061-371-9999", "note": "가성비 뛰어난 동네 찐맛집"}, 
+    {"id": "R07", "sigun": "화순", "name": "화순벽오동", "menu": "보리밥 정식, 수육", "address": "전남 화순군 화순읍 덕충길 8", "hours": "10:30~20:30", "closed": "명절 휴무", "phone": "061-371-0055", "note": "남도식 푸짐한 보리밥 백반"}, 
+    {"id": "R08", "sigun": "나주", "name": "나주곰탕 하얀집", "menu": "나주곰탕, 수육", "address": "전남 나주시 금성관길 6-1", "hours": "08:00~20:00", "closed": "격주 월요일", "phone": "061-333-4292", "note": "백년가게, 맑은 국물의 정수 대기필수"}, 
+    {"id": "R09", "sigun": "나주", "name": "나주곰탕 노안집", "menu": "원조나주곰탕", "address": "전남 나주시 금성관길 1-3", "hours": "07:00~20:00", "closed": "매주 월요일", "phone": "061-333-2053", "note": "문재인 전 대통령 방문 노포 식당"}, 
+    {"id": "R10", "sigun": "나주", "name": "영산포 홍어1번지", "menu": "홍어삼합, 홍어정식", "address": "전남 나주시 영산포로 31", "hours": "10:00~21:00", "closed": "월요일", "phone": "061-332-6931", "note": "홍어 매니아들의 성지 코스요리"}, 
+    {"id": "R11", "sigun": "장성", "name": "한우뜰", "menu": "한우 육회비빔밥", "address": "전남 장성군 장성읍 단풍로 203", "hours": "11:00~22:00", "closed": "첫째주 화요일", "phone": "0507-1460-2436", "note": "아기의자 완비, 깔끔하고 넓은 식당"}, 
+    {"id": "R12", "sigun": "장성", "name": "해운대식당", "menu": "매운 애호박찌개", "address": "전남 장성군 장성읍 영천로 161", "hours": "11:00~21:00", "closed": "문의", "phone": "061-395-1233", "note": "매콤칼칼 진한 국물, 트립어드바이저 랭커"},
+    {"id": "R13", "sigun": "장성", "name": "백양사 단풍두부", "menu": "단풍두부전골", "address": "전남 장성군 북하면 백양로 1078", "hours": "09:00~20:00", "closed": "연중무휴", "phone": "061-392-1515", "note": "백양사 가는 길목, 담백한 산채 건강식"},
+    {"id": "R14", "sigun": "장성", "name": "초동순두부", "menu": "초동순두부, 통삼겹", "address": "전남 장성군 진원면 노사로 4", "hours": "10:30~20:30", "closed": "명절 휴무", "phone": "061-392-2321", "note": "트렌디한 인테리어와 정갈한 뚝배기"}
+  ]
+};
+
+const PLACES = DATA.places, COURSES = DATA.courses, TRAVEL = DATA.travel, FOODS = DATA.restaurants;
+const placeById = Object.fromEntries(PLACES.map(p => [p.id, p]));
+
+/* 상태 관리 (명소 필터 확장 반영) */
+let state = { 
+  tab: 'course', 
+  courseSigun: '전체', courseComp: '전체', 
+  placeSigun: '전체', placeType: '전체', placeComp: '전체', placeDay: '전체', placeWeather: '전체', placeSearch: '',
+  foodSigun: '전체', foodSearch: '' 
+};
+
+let likes = JSON.parse(localStorage.getItem('gj_likes_v12_ext') || '{"course":[],"place":[],"food":[]}');
+
+function saveLikes() { localStorage.setItem('gj_likes_v12_ext', JSON.stringify(likes)); }
+function isLiked(type, id) { return likes[type].includes(id); }
+function toggleLike(type, id, ev) { 
+  if(ev) ev.stopPropagation();
+  const i = likes[type].indexOf(id);
+  if(i > -1) likes[type].splice(i, 1); else likes[type].push(id);
+  saveLikes(); 
+  render();
+  
+  if(document.getElementById('sheet').classList.contains('show')) {
+      if(type === 'course') openCourseSheet(id);
+      else if(type === 'place') openPlaceSheet(id);
+  }
+}
+
+function toast(msg) { 
+  const t = document.getElementById('toast'); 
+  t.textContent = msg; 
+  t.classList.add('show'); 
+  setTimeout(() => t.classList.remove('show'), 2200); 
+}
+
+function mapLinks(name, address) {
+  const q = encodeURIComponent((name || '') + ' ' + (address || ''));
+  return { 
+    kakao: 'https://map.kakao.com/link/search/' + q, 
+    naver: 'https://map.naver.com/v5/search/' + q 
+  };
+}
+
+function shareItem(title, text, url) {
+  const payload = title + '\n' + text + '\n' + url;
+  if(navigator.share) { 
+    navigator.share({title, text, url}).catch(() => { copyFallback(payload); }); 
+  } else {
+    copyFallback(payload);
+  }
+}
+
+function copyFallback(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    toast('공유 링크가 복사되었습니다 📋');
+  } catch (e) {
+    toast('공유를 지원하지 않는 기기입니다');
+  }
+  document.body.removeChild(textarea);
+}
+
+function hourLabel(hrs) { 
+  if(hrs == null) return '-'; 
+  const h = Math.floor(hrs); 
+  const m = Math.round((hrs - h) * 60); 
+  return m > 0 ? h + '시간 ' + m + '분' : h + '시간'; 
+}
+
+function won(n) { 
+  if(n == null || n === '') return '정보 없음'; 
+  if(n === 0) return '무료';
+  return Number(n).toLocaleString() + '원'; 
+}
+
+/* 동적 SVG 비주얼 생성 */
+function getAdvancedVisual(item, type) {
+    let theme = 'forest';
+    if (type === 'food') {
+        theme = 'food';
+    } else if (type === 'course') {
+        theme = 'course';
+    } else {
+        const n = item.name || '';
+        const c = item.type || '';
+        const d = item.desc || '';
+        if (n.includes('호수') || n.includes('강') || n.includes('돛배') || n.includes('지') || n.includes('적벽') || n.includes('아쿠아나')) theme = 'water';
+        else if (c.includes('역사') || c.includes('문화') || c.includes('마을')) theme = 'history';
+        else theme = 'forest';
+    }
+
+    if (theme === 'forest') {
+        return `<div class="svg-visual" style="background: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%);">
+            <svg viewBox="0 0 400 140" preserveAspectRatio="none">
+                <circle cx="320" cy="45" r="28" fill="#fff" opacity="0.4" />
+                <path d="M-50,35 Q-30,15 0,35 Q30,15 50,35 Q70,50 0,50 Z" fill="#fff" opacity="0.6" style="animation: cloudMove 20s linear infinite;"></path>
+                <path d="M0,140 Q100,70 200,140 Z" fill="#7cb342" opacity="0.85"/>
+                <path d="M150,140 Q250,50 400,140 Z" fill="#558b2f" opacity="0.9"/>
+                <g style="animation: sway 5s ease-in-out infinite;">
+                    <polygon points="60,140 75,80 90,140" fill="#2e7d32"/>
+                </g>
+            </svg>
+        </div>`;
+    } else if (theme === 'water') {
+        return `<div class="svg-visual" style="background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);">
+            <svg viewBox="0 0 400 140" preserveAspectRatio="none">
+                <circle cx="80" cy="40" r="24" fill="#fff" opacity="0.5"/>
+                <path d="M0,110 C100,80 150,130 200,110 C250,80 300,130 400,110 L400,140 L0,140 Z" fill="#38bdf8" opacity="0.8"></path>
+            </svg>
+        </div>`;
+    } else if (theme === 'history') {
+        return `<div class="svg-visual" style="background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);">
+            <svg viewBox="0 0 400 140" preserveAspectRatio="none">
+                <circle cx="200" cy="70" r="45" fill="#ea580c" opacity="0.25"/>
+                <path d="M30,140 Q200,80 370,140 L30,140 Z" fill="#451a03"/>
+            </svg>
+        </div>`;
+    } else if (theme === 'food') {
+        return `<div class="svg-visual" style="background: linear-gradient(120deg, #ff9a9e 0%, #fecfef 100%);">
+            <svg viewBox="0 0 400 140" preserveAspectRatio="none">
+                <path d="M130,85 L270,85 Q270,135 200,135 Q130,135 130,85 Z" fill="#e11d48"/>
+            </svg>
+        </div>`;
+    } else {
+        return `<div class="svg-visual" style="background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);">
+            <svg viewBox="0 0 400 140" preserveAspectRatio="none">
+                <path d="M0,110 L400,110 L400,140 L0,140 Z" fill="#94a3b8"/>
+            </svg>
+        </div>`;
+    }
+}
+
+function renderStats() {
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><b>${COURSES.length}</b>코스</div>
+    <div class="stat"><b>${PLACES.length}</b>명소</div>
+    <div class="stat"><b>${FOODS.length}</b>맛집</div>
+  `;
+}
+
+function sourceAccordion() {
+  return `<details class="acc" style="margin-bottom:20px;">
+            <summary>ℹ️ 데이터 출처 및 이용 안내</summary>
+            <div class="acc-body">
+              본 앱의 운영시간, 요금 등은 지자체 포털 및 한국관광공사 데이터를 기반으로 작성되었으나 계절 및 현지 사정에 따라 변동될 수 있습니다.<br><br>
+              맛집 정보는 식신, 다이닝코드 등의 리뷰를 참고한 큐레이션이며 방문 전 영업 여부를 포털에서 재확인하시기를 권장합니다.
+            </div>
+          </details>`;
+}
+
+/* 1. 코스 탭 */
+function renderCourseTab() {
+  const sigunList = ['전체', '담양', '화순', '나주', '장성'];
+  const compList = ['전체', '연인·친구', '아이 동반', '부모님 동반'];
+
+  let list = COURSES.filter(c => {
+    if(state.courseSigun !== '전체' && c.sigun !== state.courseSigun) return false;
+    if(state.courseComp !== '전체' && !(c.companion || '').includes(state.courseComp)) return false;
+    return true;
+  });
+
+  let html = `<div class="filters">${sigunList.map(s=>`<div class="chip ${s===state.courseSigun?'active':''}" data-act="courseSigun" data-val="${s}">${s}</div>`).join('')}</div>`;
+  html += `<div class="filters">${compList.map(s=>`<div class="chip ${s===state.courseComp?'active':''}" data-act="courseComp" data-val="${s}">${s}</div>`).join('')}</div>`;
+
+  if(list.length === 0) html += `<div class="empty">앗, 이 조건에 맞는 코스가 없어요.<br>필터를 조금 조절해 보실래요?</div>`;
+  else {
+    html += list.map(c => {
+      const trv = TRAVEL[c.sigun];
+      const liked = isLiked('course', c.id);
+      return `
+      <div class="card" data-open="course" data-id="${c.id}">
+        <span class="heart ${liked?'on':''}" data-like="course" data-id="${c.id}">${liked?'♥':'♡'}</span>
+        ${getAdvancedVisual(c, 'course')}
+        <div class="card-body">
+          <h3>${c.name}</h3>
+          <div class="route">${c.route}</div>
+          <div><span class="badge sigun">${c.sigun}</span><span class="badge type">${c.companion}</span></div>
+          <div class="meta-row">
+            <span>⏱ ${hourLabel(c.totalHours)}</span>
+            <span>💰 ${won(c.cost)}</span>
+            ${trv ? `<span>🚗 광주출발 편도 약 ${trv.min}분</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  return html;
+}
+
+function openCourseSheet(id) {
+  const c = COURSES.find(x => x.id === id);
+  if(!c) return;
+  const liked = isLiked('course', c.id);
+  const startPlace = placeById[c.placeIds[0]] || {};
+  const mlink = mapLinks(c.name, c.sigun + ' ' + startPlace.address);
+  const shareText = `${c.name} (${c.sigun}) - ${c.route}`.replace(/\n/g, ' '); 
+  
+  let placesHtml = c.placeIds.map((pid, idx) => {
+    const p = placeById[pid]; if(!p) return '';
+    const pm = mapLinks(p.name, p.address);
+    return `
+    <div class="place-mini">
+      <div class="pname"><span style="color:var(--accent); margin-right:4px;">${idx+1}.</span> ${p.name} <span class="badge sigun" style="margin-left:6px;">${p.type}</span></div>
+      <div class="kv">
+        <span>주소</span><b>${p.address}</b>
+        <span>요금</span><b>${p.feeAdult}</b>
+      </div>
+      <div class="action-row" style="margin-top:8px;">
+        <a class="mini-btn kakao" href="${pm.kakao}" target="_blank" style="padding:6px;">📍 길찾기</a>
+      </div>
+    </div>`;
+  }).join('');
+
+  let rainHtml = '';
+  if(c.rainAltId) {
+      const rp = placeById[c.rainAltId];
+      if(rp) {
+         const rm = mapLinks(rp.name, rp.address);
+         rainHtml = `<div class="sec"><h4>우천 시 실내 대안</h4>
+           <div class="place-mini">
+             <div class="pname">${rp.name} <span class="badge ok">실내</span></div>
+             <div class="kv"><span>주소</span><b>${rp.address}</b></div>
+             <div class="action-row" style="margin-top:8px;">
+               <a class="mini-btn kakao" href="${rm.kakao}" target="_blank" style="padding:6px;">📍 길찾기</a>
+             </div>
+           </div>
+         </div>`;
+      } else {
+         rainHtml = `<div class="sec"><h4>우천 시 실내 대안</h4><div class="place-mini"><div class="pname">${c.rainAltName}</div></div></div>`;
+      }
+  }
+
+  const foodList = FOODS.filter(fd => fd.sigun === c.sigun).slice(0, 3);
+  let foodHtml = foodList.map(fd => {
+    const fm = mapLinks(fd.name, fd.address);
+    return `
+    <div class="foodcard">
+      <div class="pname">🍚 ${fd.name} <span class="badge food">${fd.menu.split(',')[0]}</span></div>
+      <div class="kv" style="margin-top:6px;"><span>위치</span><b>${fd.address}</b></div>
+      <div class="action-row" style="margin-top:8px;">
+        <a class="mini-btn kakao" href="${fm.kakao}" target="_blank" style="padding:6px;">📍 맛집 길찾기</a>
+      </div>
+    </div>`;
+  }).join('');
+
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div style="margin: 0; border-radius: 24px 24px 0 0; overflow: hidden; position: relative;">
+        <button class="sheet-close" data-close="1">✕</button>
+        ${getAdvancedVisual(c, 'course')}
+    </div>
+    <div class="sheet-content">
+       <span class="heart ${liked?'on':''}" style="position:static; float:right; background: #f8fafc; border: 1px solid #e2e8f0; border-radius:12px; width:40px; height:40px;" data-like="course" data-id="${c.id}">${liked?'♥':'♡'}</span>
+       <h2>${c.name}</h2>
+       <div style="margin-top: 6px;"><span class="badge sigun">${c.sigun}</span><span class="badge type">${c.companion}</span></div>
+       <div class="meta-row" style="margin-top:14px; padding-bottom: 14px; border-bottom: 1px solid var(--line);">
+         <span>⏱ 소요: ${hourLabel(c.totalHours)}</span>
+         <span>💰 비용: ${won(c.cost)}</span>
+       </div>
+       <div class="notice" style="margin-top:16px;">💬 <b>추천 포인트:</b> ${c.memo}</div>
+       
+       <div class="action-row" style="margin-bottom:24px;">
+         <button class="mini-btn share" onclick='shareItem("${c.name}","${shareText}","${mlink.kakao}")' style="padding:12px; font-size:14px;">📤 코스 지인에게 공유하기</button>
+       </div>
+
+       <div class="sec"><h4>코스 동선 요약</h4>${placesHtml}</div>
+       ${rainHtml}
+       <div class="sec"><h4>이 지역 맛집 추천</h4>${foodHtml}</div>
+    </div>
+  `;
+  openSheet();
+}
+
+/* 2. 명소 찾기 탭 (다중 결합 필터링 완벽 구현) */
+function renderPlaceTab() {
+  const sigunList = ['전체', '담양', '화순', '나주', '장성'];
+  const typeList = ['전체', '자연', '문화·역사', '체험·전시', '마을·거리'];
+  const compList = ['전체', '연인·친구', '아이', '부모님', '혼자'];
+  const dayList = ['전체', '월요일', '화~금', '주말'];
+  const weatherList = ['전체', '☀️ 맑음', '☔ 비·흐림'];
+
+  let list = PLACES.filter(p => {
+    if(state.placeSigun !== '전체' && p.sigun !== state.placeSigun) return false;
+    if(state.placeType !== '전체' && p.type !== state.placeType) return false;
+    if(state.placeComp !== '전체' && !(p.companion || []).includes(state.placeComp)) return false;
+    if(state.placeDay !== '전체' && !(p.days || []).includes(state.placeDay)) return false;
+    if(state.placeWeather !== '전체' && !(p.weather || []).includes(state.placeWeather)) return false;
+    if(state.placeSearch && !p.name.includes(state.placeSearch) && !p.desc.includes(state.placeSearch)) return false;
+    return true;
+  });
+
+  let html = `<input class="searchbox" id="placeSearchInput" placeholder="🔍 가고 싶은 명소 이름/설명 검색" value="${state.placeSearch}">`;
+  
+  html += `<div class="filters-group">
+            <div class="filters-label">📍 지역</div>
+            <div class="filters">${sigunList.map(s=>`<div class="chip ${s===state.placeSigun?'active':''}" data-act="placeSigun" data-val="${s}">${s}</div>`).join('')}</div>
+          </div>`;
+          
+  html += `<div class="filters-group">
+            <div class="filters-label">🏷️ 테마/유형</div>
+            <div class="filters">${typeList.map(s=>`<div class="chip ${s===state.placeType?'active':''}" data-act="placeType" data-val="${s}">${s}</div>`).join('')}</div>
+          </div>`;
+          
+  html += `<div class="filters-group">
+            <div class="filters-label">👨‍👩‍👧 동행자</div>
+            <div class="filters">${compList.map(s=>`<div class="chip ${s===state.placeComp?'active':''}" data-act="placeComp" data-val="${s}">${s}</div>`).join('')}</div>
+          </div>`;
+          
+  html += `<div class="filters-group">
+            <div class="filters-label">📅 요일별 방문 가능</div>
+            <div class="filters">${dayList.map(s=>`<div class="chip ${s===state.placeDay?'active':''}" data-act="placeDay" data-val="${s}">${s}</div>`).join('')}</div>
+          </div>`;
+
+  html += `<div class="filters-group">
+            <div class="filters-label">🌤️ 날씨 추천</div>
+            <div class="filters">${weatherList.map(s=>`<div class="chip weather ${s===state.placeWeather?'active':''}" data-act="placeWeather" data-val="${s}">${s}</div>`).join('')}</div>
+          </div>`;
+
+  if(list.length === 0) {
+    html += `<div class="empty">해당 필터 조건에 맞는 명소가 없어요.<br>다른 조건으로 검색해 보시겠어요?</div>`;
+  } else {
+    html += `<div style="font-size:12px; color:var(--sub); font-weight:700; margin-bottom:10px;">총 ${list.length}개의 명소를 찾았습니다</div>`;
+    html += list.map(p => {
+      const liked = isLiked('place', p.id);
+      const compBadges = (p.companion || []).map(c=>`<span class="badge companion">${c}</span>`).join('');
+      const weatherBadges = (p.weather || []).map(w=>`<span class="badge weather">${w}</span>`).join('');
+      return `
+      <div class="card" data-open="place" data-id="${p.id}">
+        <span class="heart ${liked?'on':''}" data-like="place" data-id="${p.id}">${liked?'♥':'♡'}</span>
+        ${getAdvancedVisual(p, 'place')}
+        <div class="card-body">
+          <h3>${p.name}</h3>
+          <div class="route">${p.desc}</div>
+          <div>
+            <span class="badge sigun">${p.sigun}</span>
+            <span class="badge type">${p.type}</span>
+            ${p.indoor==='실내' ? `<span class="badge ok">실내</span>` : ''}
+            ${compBadges}
+            ${weatherBadges}
+          </div>
+          <div class="meta-row">
+            <span>🕒 ${p.hours.split('(')[0]}</span>
+            <span>💤 휴무: ${p.closed}</span>
+            <span>💰 ${p.feeAdult}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  return html;
+}
+
+function openPlaceSheet(id) {
+  const p = placeById[id]; if(!p) return;
+  const pm = mapLinks(p.name, p.address);
+  const liked = isLiked('place', p.id);
+  const shareText = `${p.name} (${p.sigun})\n${p.desc}`;
+  
+  const compStr = (p.companion || []).join(', ') || '누구나';
+  const dayStr = (p.days || []).join(', ') || '상시';
+  const weatherStr = (p.weather || []).join(', ') || '상관없음';
+
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div style="margin: 0; border-radius: 24px 24px 0 0; overflow: hidden; position: relative;">
+        <button class="sheet-close" data-close="1">✕</button>
+        ${getAdvancedVisual(p, 'place')}
+    </div>
+    <div class="sheet-content">
+       <span class="heart ${liked?'on':''}" style="position:static; float:right; background: #f8fafc; border: 1px solid #e2e8f0; border-radius:12px; width:40px; height:40px;" data-like="place" data-id="${p.id}">${liked?'♥':'♡'}</span>
+       <h2>${p.name}</h2>
+       <div style="margin-bottom: 14px;">
+         <span class="badge sigun">${p.sigun}</span>
+         <span class="badge type">${p.type}</span>
+         <span class="badge">${p.indoor}</span>
+         <span class="badge weather">${weatherStr}</span>
+       </div>
+       
+       <div class="notice">💡 <b>${p.desc}</b></div>
+       ${p.note ? `<div class="notice" style="background:#fff1f2; border-color:#fecdd3; color:#be123c;">⚠ ${p.note}</div>` : ''}
+       
+       <div class="kv" style="margin-top:20px; padding: 16px; background: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0;">
+         <span>📍 주소</span><b>${p.address}</b>
+         <span>🕒 시간</span><b>${p.hours}</b>
+         <span>💤 휴무</span><b>${p.closed}</b>
+         <span>📅 가능요일</span><b>${dayStr}</b>
+         <span>🌤️ 날씨적합</span><b>${weatherStr}</b>
+         <span>👨‍👩‍👧 동반추천</span><b>${compStr}</b>
+         <span>💰 입장요금</span><b>${p.feeAdult} ${p.feeOther ? `(${p.feeOther})` : ''}</b>
+         <span>🚗 주차</span><b>${p.parking}</b>
+         <span>👶 편의</span><b>${p.baby}</b>
+       </div>
+       
+       <div class="action-row" style="margin-top:20px;">
+         <a class="mini-btn kakao" href="${pm.kakao}" target="_blank" style="padding:14px; font-size: 13.5px;">📍 카카오맵 안내</a>
+         <a class="mini-btn naver" href="${pm.naver}" target="_blank" style="padding:14px; font-size: 13.5px;">🗺 네이버맵 안내</a>
+       </div>
+       <div class="action-row" style="margin-top:8px;">
+         <button class="mini-btn share" onclick='shareItem("${p.name}","${shareText}","${pm.kakao}")' style="padding:12px; font-size: 13px;">📤 친구에게 장소 공유하기</button>
+       </div>
+    </div>
+  `;
+  openSheet();
+}
+
+/* 3. 맛집 탭 */
+function renderFoodTab() {
+  const sigunList = ['전체', '담양', '화순', '나주', '장성'];
+  let list = FOODS.filter(f => {
+    if(state.foodSigun !== '전체' && f.sigun !== state.foodSigun) return false;
+    if(state.foodSearch && !(f.name.includes(state.foodSearch)||f.menu.includes(state.foodSearch))) return false;
+    return true;
+  });
+  
+  let html = `<div class="notice">💡 현지인과 포털 평점을 종합한 든든한 한끼 맛집 리스트입니다. (방문 전 앱 확인 권장)</div>`;
+  html += `<input class="searchbox" id="foodSearchInput" placeholder="🔍 식당명 또는 메뉴 검색" value="${state.foodSearch}">`;
+  html += `<div class="filters">${sigunList.map(s=>`<div class="chip food ${s===state.foodSigun?'active':''}" data-act="foodSigun" data-val="${s}">${s}</div>`).join('')}</div>`;
+
+  if(list.length === 0) html += `<div class="empty">조건에 맞는 식당이 없어요.</div>`;
+  else {
+    html += list.map(fd => {
+      const liked = isLiked('food', fd.id);
+      const fm = mapLinks(fd.name, fd.address);
+      return `
+      <div class="card">
+        <span class="heart ${liked?'on':''}" data-like="food" data-id="${fd.id}">${liked?'♥':'♡'}</span>
+        ${getAdvancedVisual(fd, 'food')}
+        <div class="card-body">
+          <h3>🍚 ${fd.name}</h3>
+          <div class="route" style="color:var(--food); font-weight:700;">대표메뉴: ${fd.menu}</div>
+          <div><span class="badge sigun">${fd.sigun}</span> <span class="badge" style="background:#f1f5f9; color:#475569;">${fd.note}</span></div>
+          <div class="meta-row" style="margin-top:12px;"><span>📍 ${fd.address}</span></div>
+          <div class="meta-row">
+            <span>🕒 ${fd.hours} (휴무: ${fd.closed})</span>
+          </div>
+          ${fd.phone ? `<div class="meta-row"><span>📞 ${fd.phone}</span></div>` : ''}
+          <div class="action-row">
+            <a class="mini-btn kakao" href="${fm.kakao}" target="_blank">📍 카카오맵</a>
+            <a class="mini-btn naver" href="${fm.naver}" target="_blank">🗺 네이버맵</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  return html;
+}
+
+/* 4. 찜목록 탭 */
+function renderLikeTab() {
+  const lc = COURSES.filter(c => isLiked('course', c.id));
+  const lp = PLACES.filter(p => isLiked('place', p.id));
+  const lf = FOODS.filter(f => isLiked('food', f.id));
+  
+  if(lc.length === 0 && lp.length === 0 && lf.length === 0) {
+      return `
+      <div class="empty" style="padding-top: 80px;">
+        <div style="font-size: 44px; margin-bottom: 12px; color:#cbd5e1;">♥</div>
+        아직 찜한 나들이 항목이 없네요!<br>마음에 드는 카드의 하트를 탭해보세요.
+      </div>`;
+  }
+  
+  let html = '';
+  if(lc.length) { 
+      html += `<h4 style="color:var(--accent-dark); font-size:16px; margin: 10px 0; font-weight:800;">🚗 내가 찜한 코스</h4>` + lc.map(c => `
+      <div class="card" data-open="course" data-id="${c.id}" style="border-left: 4px solid var(--accent);">
+        <span class="heart on" data-like="course" data-id="${c.id}">♥</span>
+        <div class="card-body" style="padding: 14px;">
+          <h3 style="margin-bottom:6px;">${c.name}</h3>
+          <span class="badge sigun">${c.sigun}</span><span class="badge type">${c.companion}</span>
+          <div style="font-size:11.5px; color:#64748b; margin-top:8px;">${c.route}</div>
+        </div>
+      </div>`).join(''); 
+  }
+  if(lp.length) { 
+      html += `<h4 style="color:var(--accent-dark); font-size:16px; margin: 24px 0 10px; font-weight:800;">📍 내가 찜한 명소</h4>` + lp.map(p => `
+      <div class="card" data-open="place" data-id="${p.id}" style="border-left: 4px solid var(--ok);">
+        <span class="heart on" data-like="place" data-id="${p.id}">♥</span>
+        <div class="card-body" style="padding: 14px;">
+          <h3 style="margin-bottom:6px;">${p.name}</h3>
+          <span class="badge sigun">${p.sigun}</span><span class="badge type">${p.type}</span>
+        </div>
+      </div>`).join(''); 
+  }
+  if(lf.length) { 
+      html += `<h4 style="color:var(--accent-dark); font-size:16px; margin: 24px 0 10px; font-weight:800;">🍚 내가 찜한 맛집</h4>` + lf.map(f => {
+      const fm = mapLinks(f.name, f.address);
+      return `
+      <div class="card" style="border-left: 4px solid var(--food);">
+        <span class="heart on" data-like="food" data-id="${f.id}">♥</span>
+        <div class="card-body" style="padding: 14px;">
+          <h3 style="margin-bottom:6px;">${f.name}</h3>
+          <div style="font-size:12px; font-weight:700; color:var(--food); margin-bottom:8px;">${f.menu}</div>
+          <span class="badge sigun">${f.sigun}</span>
+          <div class="action-row" style="margin-top:12px;"><a class="mini-btn kakao" href="${fm.kakao}" target="_blank">📍 지도 보기</a></div>
+        </div>
+      </div>`}).join(''); 
+  }
+  return html;
+}
+
+function openSheet() { 
+  document.getElementById('overlay').classList.add('show'); 
+  document.getElementById('sheet').classList.add('show'); 
+}
+function closeSheet() { 
+  document.getElementById('overlay').classList.remove('show'); 
+  document.getElementById('sheet').classList.remove('show'); 
+}
+
+/* 5. AI 스마트 큐레이션 */
+function renderCurationTab() {
+  return `
+  <div class="curation-box">
+    <h3>🎲 AI 스마트 큐레이션 엔진</h3>
+    <p>어디로 갈지 고민이신가요? 조건에 딱 맞는 맞춤형 코스를 즉시 뽑아드립니다!</p>
+    
+    <div class="curation-sel-row">
+      <select class="curation-sel" id="curSigun">
+        <option value="ALL">📍 지역 무관</option>
+        <option value="담양">담양군</option>
+        <option value="화순">화순군</option>
+        <option value="나주">나주시</option>
+        <option value="장성">장성군</option>
+      </select>
+      
+      <select class="curation-sel" id="curComp">
+        <option value="ALL">👥 동행 무관</option>
+        <option value="연인·친구">💑 연인·친구</option>
+        <option value="아이 동반">👨‍👩‍👧‍👦 아이 동반</option>
+        <option value="부모님 동반">👵 부모님 모시고</option>
+      </select>
+    </div>
+    
+    <button class="btn-curate" onclick="runSmartCuration()">✨ 최적의 나들이 코스 뽑기</button>
+    <div class="curate-result" id="curateResult"></div>
+  </div>`;
+}
+
+function runSmartCuration() {
+  var sigun = document.getElementById('curSigun').value;
+  var comp = document.getElementById('curComp').value;
+  
+  var filtered = COURSES.filter(c => {
+    var mSigun = (sigun === 'ALL' || c.sigun === sigun);
+    var mComp = (comp === 'ALL' || (c.companion && c.companion.includes(comp)));
+    return mSigun && mComp;
+  });
+  
+  var resBox = document.getElementById('curateResult');
+  resBox.className = 'curate-result show';
+
+  if (filtered.length === 0) {
+    resBox.innerHTML = '<div style="text-align:center; padding:24px 10px; color:#64748b; font-weight:500;">조건에 꼭 맞는 코스가 없습니다.<br>지역이나 동행 조건을 조금 넓혀서 다시 뽑아주세요!</div>';
+    return;
+  }
+  
+  var picked = filtered[Math.floor(Math.random() * filtered.length)];
+  var startPlace = placeById[picked.placeIds[0]] || {};
+  var navs = mapLinks(picked.name, startPlace.address);
+
+  resBox.innerHTML = `
+    <div style="font-size:12.5px; color:var(--accent-dark); font-weight:800; margin-bottom:6px;">🎯 오늘의 추천 코스 당첨!</div>
+    <h3 style="margin:0 0 8px; font-size:18px; color:var(--ink); font-weight:800;">${picked.name}</h3>
+    <div style="margin-bottom:12px;">
+      <span class="badge sigun">${picked.sigun}</span>
+      <span class="badge type">${picked.companion}</span>
+      <span style="font-size:11.5px; color:#64748b; margin-left:6px; font-weight:600;">⏱ ${hourLabel(picked.totalHours)}</span>
+    </div>
+    <div style="background:#f8fafc; padding:14px; border-radius:12px; font-size:13px; color:#334155; line-height:1.5; margin-bottom:14px; font-weight:500; border:1px solid #e2e8f0;">
+      💬 ${picked.memo}
+    </div>
+    <div style="font-size:12.5px; color:#64748b; margin-bottom:10px; font-weight:600; padding-left:4px;">📍 ${picked.route}</div>
+    <div class="nav-btn-group">
+      <button class="nav-btn" style="background:#fff; border:1px solid #cbd5e1; color:#334155;" onclick="openCourseSheet('${picked.id}')">📝 코스 상세 보기</button>
+      <a class="nav-btn kakao" href="${navs.kakao}" target="_blank">📍 시작점 길찾기</a>
+    </div>
+  `;
+}
+
+function render() {
+  renderStats();
+  const c = document.getElementById('content');
+  if(state.tab === 'course') c.innerHTML = renderCourseTab() + sourceAccordion();
+  else if(state.tab === 'place') c.innerHTML = renderPlaceTab() + sourceAccordion();
+  else if(state.tab === 'food') c.innerHTML = renderFoodTab() + sourceAccordion();
+  else if(state.tab === 'curation') c.innerHTML = renderCurationTab();
+  else c.innerHTML = renderLikeTab();
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.tab));
+
+  c.querySelectorAll('[data-open]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if(e.target.closest('.heart') || e.target.closest('.mini-btn')) return;
+      if(el.dataset.open === 'course') openCourseSheet(el.dataset.id); 
+      else openPlaceSheet(el.dataset.id);
+    });
+  });
+  
+  c.querySelectorAll('[data-like]').forEach(el => {
+    el.addEventListener('click', (ev) => toggleLike(el.dataset.like, el.dataset.id, ev));
+  });
+  
+  c.querySelectorAll('[data-act]').forEach(el => {
+    el.addEventListener('click', () => {
+      const act = el.dataset.act, val = el.dataset.val;
+      state[act] = val;
+      render();
+    });
+  });
+  
+  const psi = document.getElementById('placeSearchInput');
+  if(psi) psi.addEventListener('input', e => { state.placeSearch = e.target.value; render(); psi.focus(); psi.setSelectionRange(psi.value.length,psi.value.length); });
+  const fsi = document.getElementById('foodSearchInput');
+  if(fsi) fsi.addEventListener('input', e => { state.foodSearch = e.target.value; render(); fsi.focus(); fsi.setSelectionRange(fsi.value.length,fsi.value.length); });
+}
+
+document.querySelectorAll('.tab').forEach(t => { 
+  t.addEventListener('click', () => { 
+    state.tab = t.dataset.tab; 
+    render(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }); 
+});
+
+document.getElementById('overlay').addEventListener('click', closeSheet);
+document.addEventListener('click', e => { if(e.target.closest && e.target.closest('.sheet-close')) closeSheet(); });
+
+render();
+</script>
+</body>
+</html>
